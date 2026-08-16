@@ -6,6 +6,11 @@
 - Added `pauseSubscriber()` and `resumeSubscriber()` to the typed browser SDK.
 - Preserved verification and component preferences while delivery is paused.
 
+### Release operations
+
+- Replayed the v1.2.0 documentation handoff after the documentation platform's
+  intake recovery; the shipped API, SDK, and widget surface is unchanged.
+
 ## 1.1.0 — Harborline Watch
 
 Harborline Watch turns a passive status page into an alerting workflow.
