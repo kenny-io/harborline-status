@@ -4,6 +4,10 @@ export type ComponentStatus = "operational" | "degraded" | "outage";
 
 export type IncidentStatus = "investigating" | "identified" | "monitoring" | "resolved";
 
+export type SubscriberChannel = "email" | "webhook";
+
+export type OverallStatus = "operational" | "degraded" | "outage";
+
 export interface StatusComponent {
   id: string;
   name: string;
@@ -30,6 +34,38 @@ export interface CreateIncidentInput {
 export interface UpdateIncidentInput {
   message?: string;
   status?: IncidentStatus;
+}
+
+/** One customer-facing message on an incident timeline. */
+export interface IncidentUpdate {
+  id: string;
+  incidentId: string;
+  message: string;
+  status: IncidentStatus;
+  publishedAt: string;
+}
+
+/** A destination registered for component-scoped incident alerts. */
+export interface Subscriber {
+  id: string;
+  channel: SubscriberChannel;
+  address: string;
+  componentIds: string[];
+  verifiedAt?: string;
+  createdAt: string;
+}
+
+export interface CreateSubscriberInput {
+  channel: SubscriberChannel;
+  address: string;
+  componentIds?: string[];
+}
+
+/** Public, unauthenticated status payload consumed by embeds and status pages. */
+export interface StatusSummary {
+  status: OverallStatus;
+  components: StatusComponent[];
+  activeIncidents: Incident[];
 }
 
 export interface ApiError {
