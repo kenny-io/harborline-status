@@ -33,6 +33,7 @@ describe("createHarborlineClient", () => {
             channel: "email",
             address: "ops@example.com",
             componentIds: [],
+            isPaused: false,
             createdAt: "2026-08-16T00:00:00Z",
           }),
           { status: 201, headers: { "content-type": "application/json" } },
@@ -71,6 +72,40 @@ describe("createHarborlineClient", () => {
     expect(request).toHaveBeenNthCalledWith(
       2,
       "https://status.harborline.test/v1/incidents/inc_1/updates",
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+
+  it("pauses and resumes a subscriber without changing its identifier", async () => {
+    const request = vi.fn(async (input: string | URL | Request) =>
+      new Response(
+        JSON.stringify({
+          id: "sub_1",
+          channel: "email",
+          address: "ops@example.com",
+          componentIds: [],
+          isPaused: String(input).endsWith("/pause"),
+          createdAt: "2026-08-16T00:00:00Z",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+    const client = createHarborlineClient({
+      baseUrl: "https://status.harborline.test",
+      apiToken: "secret",
+      fetch: request as typeof fetch,
+    });
+
+    await expect(client.pauseSubscriber("sub_1")).resolves.toMatchObject({ isPaused: true });
+    await expect(client.resumeSubscriber("sub_1")).resolves.toMatchObject({ isPaused: false });
+    expect(request).toHaveBeenNthCalledWith(
+      1,
+      "https://status.harborline.test/v1/subscribers/sub_1/pause",
+      expect.objectContaining({ method: "POST" }),
+    );
+    expect(request).toHaveBeenNthCalledWith(
+      2,
+      "https://status.harborline.test/v1/subscribers/sub_1/resume",
       expect.objectContaining({ method: "POST" }),
     );
   });

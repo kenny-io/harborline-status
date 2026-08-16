@@ -33,6 +33,8 @@ export interface HarborlineClient {
   }): Promise<Subscriber>;
   getSubscriber(id: string): Promise<Subscriber>;
   verifySubscriber(id: string): Promise<Subscriber>;
+  pauseSubscriber(id: string): Promise<Subscriber>;
+  resumeSubscriber(id: string): Promise<Subscriber>;
   unsubscribe(id: string): Promise<void>;
 }
 
@@ -95,6 +97,16 @@ export function createHarborlineClient(options: HarborlineClientOptions): Harbor
     },
     verifySubscriber(id) {
       return request<Subscriber>(`/v1/subscribers/${encodeURIComponent(id)}/verify`, {
+        method: "POST",
+      });
+    },
+    pauseSubscriber(id) {
+      return request<Subscriber>(`/v1/subscribers/${encodeURIComponent(id)}/pause`, {
+        method: "POST",
+      });
+    },
+    resumeSubscriber(id) {
+      return request<Subscriber>(`/v1/subscribers/${encodeURIComponent(id)}/resume`, {
         method: "POST",
       });
     },

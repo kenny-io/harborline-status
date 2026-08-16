@@ -1,8 +1,9 @@
 # Harborline Status
 
 Harborline gives small platform teams one incident API, one typed browser
-client, and one embeddable status beacon. Version 1.1, **Harborline Watch**,
-adds customer subscriptions and a durable customer-facing incident timeline.
+client, and one embeddable status beacon. Version 1.2 adds pause and resume
+controls to **Harborline Watch**, so customers can silence delivery without
+losing verification or component preferences.
 
 ## Run it
 
@@ -39,6 +40,8 @@ the operator bearer token:
 
 - `GET /v1/subscribers/:id` reads one destination.
 - `POST /v1/subscribers/:id/verify` marks it verified.
+- `POST /v1/subscribers/:id/pause` temporarily silences delivery.
+- `POST /v1/subscribers/:id/resume` restores delivery.
 - `DELETE /v1/subscribers/:id` removes it.
 
 Incident communication is now a timeline rather than a mutable final message:
@@ -54,18 +57,20 @@ Publishing an update also advances the incident's current message and status.
 
 ## API
 
-The complete machine-readable 1.1 contract is in
-[`openapi.yaml`](./openapi.yaml). The release adds seven operations:
+The complete machine-readable 1.2 contract is in
+[`openapi.yaml`](./openapi.yaml). Harborline Watch now includes nine operations:
 
 - `GET /v1/status`
 - `GET` and `POST /v1/incidents/:id/updates`
 - `POST /v1/subscribers`
 - `GET` and `DELETE /v1/subscribers/:id`
 - `POST /v1/subscribers/:id/verify`
+- `POST /v1/subscribers/:id/pause`
+- `POST /v1/subscribers/:id/resume`
 
 Every error uses `{ "error": { "code", "message" } }`.
 
-## Browser SDK 1.1
+## Browser SDK 1.2
 
 ```ts
 import { createHarborlineClient } from "@harborline/status/sdk";
@@ -83,10 +88,10 @@ const subscriber = await harborline.subscribe({
 });
 ```
 
-The 1.1 client adds `getStatus()`, `listIncidentUpdates()`,
+The 1.2 client includes `getStatus()`, `listIncidentUpdates()`,
 `publishIncidentUpdate()`, `subscribe()`, `getSubscriber()`,
-`verifySubscriber()`, and `unsubscribe()` while retaining the 1.0 incident and
-component methods.
+`verifySubscriber()`, `pauseSubscriber()`, `resumeSubscriber()`, and
+`unsubscribe()` while retaining the 1.0 incident and component methods.
 
 ## Beacon widget 1.1
 
