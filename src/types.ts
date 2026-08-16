@@ -51,6 +51,8 @@ export interface Subscriber {
   channel: SubscriberChannel;
   address: string;
   componentIds: string[];
+  /** Paused destinations retain verification and component preferences. */
+  isPaused: boolean;
   verifiedAt?: string;
   createdAt: string;
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0 — Harborline Watch pause controls
+
+- Added authenticated pause and resume endpoints for subscriber delivery.
+- Added `pauseSubscriber()` and `resumeSubscriber()` to the typed browser SDK.
+- Preserved verification and component preferences while delivery is paused.
+
 ## 1.1.0 — Harborline Watch
 
 Harborline Watch turns a passive status page into an alerting workflow.

@@ -48,7 +48,7 @@ export function createHarborlineApp(options: HarborlineAppOptions): Hono {
   let signupRequests = 0;
 
   app.get("/health", (context) => context.json({ status: "ok" }));
-  app.get("/version", (context) => context.json({ version: "1.1.0" }));
+  app.get("/version", (context) => context.json({ version: "1.2.0" }));
 
   // These endpoints are deliberately credential-free so third-party status
   // pages may read state and register alerts. Authenticated operator routes do
@@ -241,6 +241,20 @@ export function createHarborlineApp(options: HarborlineAppOptions): Hono {
 
   app.post("/v1/subscribers/:id/verify", (context) => {
     const subscriber = options.store.verifySubscriber(context.req.param("id"));
+    return subscriber
+      ? context.json(subscriber)
+      : context.json(errorBody("subscriber_not_found", "No subscriber has that id."), 404);
+  });
+
+  app.post("/v1/subscribers/:id/pause", (context) => {
+    const subscriber = options.store.setSubscriberPaused(context.req.param("id"), true);
+    return subscriber
+      ? context.json(subscriber)
+      : context.json(errorBody("subscriber_not_found", "No subscriber has that id."), 404);
+  });
+
+  app.post("/v1/subscribers/:id/resume", (context) => {
+    const subscriber = options.store.setSubscriberPaused(context.req.param("id"), false);
     return subscriber
       ? context.json(subscriber)
       : context.json(errorBody("subscriber_not_found", "No subscriber has that id."), 404);

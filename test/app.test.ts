@@ -17,7 +17,7 @@ describe("public service metadata", () => {
   it("serves health and version without authentication", async () => {
     const app = makeApp("secret");
     expect(await (await app.request("/health")).json()).toEqual({ status: "ok" });
-    expect(await (await app.request("/version")).json()).toEqual({ version: "1.1.0" });
+    expect(await (await app.request("/version")).json()).toEqual({ version: "1.2.0" });
   });
 });
 
@@ -174,6 +174,23 @@ describe("subscriber alerts", () => {
       ...auth,
     });
     expect((await verified.json()).verifiedAt).toBeTruthy();
+    expect(
+      (
+        await app.request(`/v1/subscribers/${created.id}/pause`, {
+          method: "POST",
+        })
+      ).status,
+    ).toBe(401);
+    const paused = await app.request(`/v1/subscribers/${created.id}/pause`, {
+      method: "POST",
+      ...auth,
+    });
+    expect(await paused.json()).toMatchObject({ id: created.id, isPaused: true });
+    const resumed = await app.request(`/v1/subscribers/${created.id}/resume`, {
+      method: "POST",
+      ...auth,
+    });
+    expect(await resumed.json()).toMatchObject({ id: created.id, isPaused: false });
     expect(
       (
         await app.request(`/v1/subscribers/${created.id}`, {

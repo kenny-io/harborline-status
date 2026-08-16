@@ -27,6 +27,7 @@ export interface HarborlineStore {
   createSubscriber(input: CreateSubscriberInput): Subscriber | undefined;
   getSubscriber(id: string): Subscriber | undefined;
   verifySubscriber(id: string): Subscriber | undefined;
+  setSubscriberPaused(id: string, isPaused: boolean): Subscriber | undefined;
   deleteSubscriber(id: string): boolean;
 }
 
@@ -152,6 +153,7 @@ export function createHarborlineStore(options: HarborlineStoreOptions = {}): Har
         channel: input.channel,
         address: input.address,
         componentIds: [...(input.componentIds ?? [])],
+        isPaused: false,
         createdAt: new Date().toISOString(),
       };
       subscribers.set(subscriber.id, subscriber);
@@ -164,6 +166,13 @@ export function createHarborlineStore(options: HarborlineStoreOptions = {}): Har
       const current = subscribers.get(id);
       if (!current) return undefined;
       const subscriber = { ...current, verifiedAt: new Date().toISOString() };
+      subscribers.set(id, subscriber);
+      return subscriber;
+    },
+    setSubscriberPaused(id, isPaused) {
+      const current = subscribers.get(id);
+      if (!current) return undefined;
+      const subscriber = { ...current, isPaused };
       subscribers.set(id, subscriber);
       return subscriber;
     },
