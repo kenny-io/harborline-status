@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: Harborline Status API
-  version: 1.0.0
-  description: Publish incidents and power customer-facing status experiences.
+  version: 1.1.0
+  description: Publish incidents, stream timeline updates, and register customer alert destinations.
 servers:
   - url: https://api.harborline.example
 paths:
@@ -20,6 +20,18 @@ paths:
       responses:
         "200":
           description: Version metadata
+  /v1/status:
+    get:
+      operationId: getPublicStatus
+      summary: Read the public platform status
+      description: Returns component health and every unresolved incident without authentication.
+      responses:
+        "200":
+          description: Current public status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusSummary"
   /v1/components:
     get:
       operationId: listComponents
@@ -54,11 +66,7 @@ paths:
           description: Incident opened
   /v1/incidents/{incidentId}:
     parameters:
-      - name: incidentId
-        in: path
-        required: true
-        schema:
-          type: string
+      - $ref: "#/components/parameters/IncidentId"
     get:
       operationId: getIncident
       summary: Fetch one incident
@@ -77,11 +85,99 @@ paths:
       responses:
         "200":
           description: Updated incident
+  /v1/incidents/{incidentId}/updates:
+    parameters:
+      - $ref: "#/components/parameters/IncidentId"
+    get:
+      operationId: listIncidentUpdates
+      summary: List the customer-visible incident timeline
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Timeline ordered oldest first
+    post:
+      operationId: publishIncidentUpdate
+      summary: Publish a timeline update and advance incident state
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublishIncidentUpdateInput"
+      responses:
+        "201":
+          description: Timeline update published
+        "404":
+          description: Incident not found
+  /v1/subscribers:
+    post:
+      operationId: createSubscriber
+      summary: Register an email or webhook alert destination
+      description: Public signup endpoint. New destinations remain unverified until confirmed by an operator.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSubscriberInput"
+      responses:
+        "201":
+          description: Pending subscriber registered
+  /v1/subscribers/{subscriberId}:
+    parameters:
+      - $ref: "#/components/parameters/SubscriberId"
+    get:
+      operationId: getSubscriber
+      summary: Read one alert destination
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Subscriber
+        "404":
+          description: Subscriber not found
+    delete:
+      operationId: deleteSubscriber
+      summary: Unsubscribe an alert destination
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Subscriber removed
+  /v1/subscribers/{subscriberId}/verify:
+    parameters:
+      - $ref: "#/components/parameters/SubscriberId"
+    post:
+      operationId: verifySubscriber
+      summary: Mark an alert destination as verified
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Verified subscriber
+        "404":
+          description: Subscriber not found
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
+  parameters:
+    IncidentId:
+      name: incidentId
+      in: path
+      required: true
+      schema:
+        type: string
+    SubscriberId:
+      name: subscriberId
+      in: path
+      required: true
+      schema:
+        type: string
   schemas:
     CreateIncidentInput:
       type: object
@@ -99,3 +195,45 @@ components:
           maxItems: 20
           items:
             type: string
+    PublishIncidentUpdateInput:
+      type: object
+      required: [message, status]
+      properties:
+        message:
+          type: string
+          maxLength: 2000
+        status:
+          type: string
+          enum: [investigating, identified, monitoring, resolved]
+    CreateSubscriberInput:
+      type: object
+      required: [channel, address]
+      properties:
+        channel:
+          type: string
+          enum: [email, webhook]
+        address:
+          type: string
+          description: Email address or HTTPS webhook URL matching channel.
+          maxLength: 2048
+        componentIds:
+          type: array
+          maxItems: 20
+          description: Empty or omitted subscribes to every component.
+          items:
+            type: string
+    StatusSummary:
+      type: object
+      required: [status, components, activeIncidents]
+      properties:
+        status:
+          type: string
+          enum: [operational, degraded, outage]
+        components:
+          type: array
+          items:
+            type: object
+        activeIncidents:
+          type: array
+          items:
+            type: object
